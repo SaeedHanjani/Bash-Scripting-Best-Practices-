@@ -36,21 +36,23 @@ How to Use the Script
 Save the script to a file, e.g., monitor_failed_logins.sh.
 
 Make the script executable:
-
+```
 bash
 Copy
 chmod +x monitor_failed_logins.sh
 Run the script as root (since it requires access to system logs and /etc/hosts.deny):
-
+```
+```
 bash
 Copy
 sudo ./monitor_failed_logins.sh
 To run the script in the background, use:
-
+```
+```
 bash
 Copy
 sudo nohup ./monitor_failed_logins.sh &
-
+```
 
 Additional Enhancements
 Log Rotation:
@@ -151,10 +153,10 @@ Send a message to the bot.
 
 Use the following URL to get your Chat ID (replace YOUR_BOT_TOKEN with your actual bot token):
 
-Copy
+```
 https://api.telegram.org/botYOUR_BOT_TOKEN/getUpdates
 Look for the chat.id field in the JSON response.
-
+```
 Update the Script:
 
 Replace YOUR_TELEGRAM_BOT_TOKEN and YOUR_TELEGRAM_CHAT_ID in the script with your actual bot token and chat ID.
@@ -173,34 +175,39 @@ When an IP is blocked.
 Example Telegram Alerts
 Failed Login Attempt:
 
-Copy
+```
 ⚠️ Failed Login Attempt:
 - User: `root`
 - IP: `192.168.1.100`
 - Time: `2023-10-15 14:30:45`
+```
+
 Blocked IP:
 
-Copy
+```
 🚨 Blocked IP: 192.168.1.100
 🔒 Added to `/etc/hosts.deny`.
+```
 Running the Script
 Save the script to a file, e.g., monitor_failed_logins.sh.
 
 Make the script executable:
-
+```
 bash
-Copy
+
 chmod +x monitor_failed_logins.sh
 Run the script as root:
-
-bash
+```
+```
 Copy
 sudo ./monitor_failed_logins.sh
 To run the script in the background:
-
+```
+```
 bash
-Copy
+
 sudo nohup ./monitor_failed_logins.sh &
+```
 Additional Notes
 Ensure curl is installed on your system (most Linux distributions have it by default).
 
