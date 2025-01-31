@@ -198,11 +198,13 @@ bash
 chmod +x monitor_failed_logins.sh
 Run the script as root:
 ```
+
 ```
-Copy
 sudo ./monitor_failed_logins.sh
-To run the script in the background:
 ```
+To run the script in the background:
+
+
 ```
 bash
 
