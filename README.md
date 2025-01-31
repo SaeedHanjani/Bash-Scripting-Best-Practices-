@@ -70,7 +70,7 @@ Slack/Telegram Alerts:
 Replace the email alert with a Slack or Telegram notification using webhooks.
 
 
-
+```
 #!/bin/bash
 
 # Configuration
@@ -131,6 +131,7 @@ tail -Fn0 "$LOG_FILE" | while read -r line; do
     fi
 done
 
+```
 
 
 How to Set Up Telegram Alerts
