@@ -38,13 +38,13 @@ Save the script to a file, e.g., monitor_failed_logins.sh.
 Make the script executable:
 ```
 bash
-Copy
+
 chmod +x monitor_failed_logins.sh
 Run the script as root (since it requires access to system logs and /etc/hosts.deny):
 ```
 ```
 bash
-Copy
+
 sudo ./monitor_failed_logins.sh
 To run the script in the background, use:
 ```
