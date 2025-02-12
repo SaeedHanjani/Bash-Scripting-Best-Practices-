@@ -1,5 +1,5 @@
-# bash
-# first project
+# here we have some best peractices for bash scripting:
+# First project
 ## Advanced monitoring of failed logins in linux with bash using Telegram Alert
 
 To implement advanced monitoring of failed logins in Linux using Bash, you can create a custom script that analyzes system logs, tracks failed login attempts, and takes appropriate actions (e.g., sending alerts, blocking IPs, or logging details). Below is an example of a Bash script that monitors failed logins and provides advanced functionality.
