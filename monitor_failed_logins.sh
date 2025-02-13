@@ -1,59 +1,49 @@
 #!/bin/bash
 
-# Configuration
-LOG_FILE="/var/log/auth.log"  # Path to the auth log file (may vary based on distro)
-FAILED_LOG="/var/log/failed_logins.log"  # Custom log file for failed login attempts
-MAX_ATTEMPTS=3  # Maximum allowed failed attempts before taking action
-BLOCKLIST_FILE="/etc/hosts.deny"  # File to block IPs (using hosts.deny)
+# Source the Telegram alert function
+source /home/user/scripts/telegram_alert.sh  # Adjust the path!
 
-# Telegram Bot Configuration
-TELEGRAM_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN"  # Replace with your bot token
-TELEGRAM_CHAT_ID="YOUR_TELEGRAM_CHAT_ID"  # Replace with your chat ID
+# Log file to monitor
+LOG_FILE="/var/log/auth.log"  # For Debian/Ubuntu
+# LOG_FILE="/var/log/secure"  # Uncomment for CentOS/RHEL
 
-# Function to send Telegram alerts
-send_telegram_alert() {
-    local message="$1"
-    curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
-        -d "chat_id=$TELEGRAM_CHAT_ID" \
-        -d "text=$message" \
-        -d "parse_mode=Markdown" > /dev/null
-}
+TMP_FILE="/tmp/failed_login_lastpos"
 
-# Function to block an IP address
-block_ip() {
-    local ip="$1"
-    if ! grep -q "$ip" "$BLOCKLIST_FILE"; then
-        echo "ALL: $ip" >> "$BLOCKLIST_FILE"
-        echo "Blocked IP: $ip" | tee -a "$FAILED_LOG"
-        send_telegram_alert "🚨 *Blocked IP:* $ip\n🔒 Added to \`/etc/hosts.deny\`."
-    fi
-}
+# Ensure TMP_FILE exists
+if [ ! -f "$TMP_FILE" ]; then
+    echo "0" > "$TMP_FILE"
+fi
 
-# Main script
-echo "Starting failed login monitor..."
+# Ensure LOG_FILE exists
+if [ ! -f "$LOG_FILE" ]; then
+    echo "Error: Log file $LOG_FILE does not exist!"
+    exit 1
+fi
 
-# Continuously monitor the log file
-tail -Fn0 "$LOG_FILE" | while read -r line; do
-    # Check for failed login attempts
-    if echo "$line" | grep -q "Failed password"; then
-        # Extract relevant details (username and IP address)
-        username=$(echo "$line" | grep -oP 'for \K\S+')
-        ip=$(echo "$line" | grep -oP 'from \K\S+')
+# Read last position
+LAST_POS=$(cat "$TMP_FILE")
+CURRENT_POS=$(wc -c < "$LOG_FILE")
 
-        # Log the failed attempt
-        timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-        log_entry="$timestamp - Failed login attempt for user '$username' from IP '$ip'"
-        echo "$log_entry" | tee -a "$FAILED_LOG"
+# Ensure LAST_POS is a number
+if ! [[ "$LAST_POS" =~ ^[0-9]+$ ]]; then
+    LAST_POS=0
+fi
 
-        # Send Telegram alert for the failed attempt
-        send_telegram_alert "⚠️ *Failed Login Attempt:*\n- User: \`$username\`\n- IP: \`$ip\`\n- Time: \`$timestamp\`"
+# Handle log rotation
+if [ "$CURRENT_POS" -lt "$LAST_POS" ]; then
+    LAST_POS=0
+fi
 
-        # Count the number of failed attempts for this IP
-        attempt_count=$(grep -c "from $ip" "$FAILED_LOG")
+# Extract new failed login attempts
+NEW_LINES=$(tail -c +"$((LAST_POS + 1))" "$LOG_FILE" | grep "Failed password")
 
-        # Take action if the maximum attempts are exceeded
-        if [ "$attempt_count" -ge "$MAX_ATTEMPTS" ]; then
-            block_ip "$ip"
-        fi
-    fi
-done
+# Update last position
+echo "$CURRENT_POS" > "$TMP_FILE"
+
+# Send Telegram alert if new failed logins detected
+if [ ! -z "$NEW_LINES" ]; then
+    MESSAGE="🚨 Failed SSH login attempts detected on $(hostname) 🚨%0A"
+    MESSAGE+="$(echo "$NEW_LINES" | tail -5 | sed 's/$/%0A/g')"
+
+    send_telegram_alert "$MESSAGE"
+fi
